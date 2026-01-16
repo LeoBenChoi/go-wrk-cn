@@ -65,7 +65,7 @@ func init() {
 
 // printDefaults 以更友好的格式打印默认值
 func printDefaults() {
-	fmt.Println("用法: go-wrk <options> <url>")
+	fmt.Println("用法: go-wrk-cn <options> <url>")
 	fmt.Println("选项:")
 	flag.VisitAll(func(flag *flag.Flag) {
 		if flag.DefValue != "" {

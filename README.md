@@ -1,7 +1,7 @@
 go-wrk - HTTP 性能测试工具
 ==================================
 
-**本项目是对原项目（ https://github.com/tsliwowicz/go-wrk ） 的汉化，虽然项目叫go-wrk-cn，但是使用命令还算是go-wrk，代码方面只修改了弃用的库**
+**本项目是对原项目（ https://github.com/tsliwowicz/go-wrk ） 的汉化，代码方面只修改了弃用的库**
 
 go-wrk 是一个现代化的 HTTP 性能测试工具，在单台多核 CPU 上运行时能够产生显著的负载。它基于 Go 语言的 goroutine 和调度器，在后台实现异步 IO 和并发。
 
@@ -15,11 +15,11 @@ go-wrk 的大部分代码是在一个下午完成的，其质量可与 wrk 相�
 
     go install github.com/LeoBenChoi/go-wrk-cn@latest
 
-这将下载并编译 go-wrk。 
+这将下载并编译 go-wrk-cn。 
 
-命令行参数 (./go-wrk -help)  
+命令行参数 (./go-wrk-cn -help)  
 	
-       Usage: go-wrk <options> <url>
+       Usage: go-wrk-cn <options> <url>
        Options:
         -H       添加到每个请求的请求头（可以定义多个 -H 标志）(默认值 )
         -M       HTTP 方法 (默认值 GET)
@@ -43,7 +43,7 @@ go-wrk 的大部分代码是在一个下午完成的，其质量可与 wrk 相�
 基本用法
 -----------
 
-    ./go-wrk -c 2048 -d 10 http://localhost:8080/plaintext
+    ./go-wrk-cn -c 2048 -d 10 http://localhost:8080/plaintext
 
 这将运行一个持续 10 秒的性能测试，使用 2048 个 goroutine（连接）
 
@@ -72,7 +72,7 @@ go-wrk 的大部分代码是在一个下午完成的，其质量可与 wrk 相�
 性能测试技巧
 -----------------
 
-  运行 go-wrk 的机器必须有足够数量的临时端口可用，并且关闭的套接字应该快速回收。为了处理初始连接突发，服务器的 listen(2) 积压队列应该大于正在测试的并发连接数。
+  运行 go-wrk-cn 的机器必须有足够数量的临时端口可用，并且关闭的套接字应该快速回收。为了处理初始连接突发，服务器的 listen(2) 积压队列应该大于正在测试的并发连接数。
 
 致谢
 ----------------
