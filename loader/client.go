@@ -3,20 +3,19 @@ package loader
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
-	"net/http"
-
 	"fmt"
-
-	"golang.org/x/net/http2"
+	"net/http"
+	"os"
 	"time"
-	"github.com/tsliwowicz/go-wrk/util"
+
+	"github.com/LeoBenChoi/go-wrk-cn/util"
+	"golang.org/x/net/http2"
 )
 
 func client(disableCompression, disableKeepAlive, skipVerify bool, timeoutms int, allowRedirects bool, clientCert, clientKey, caCert string, usehttp2 bool) (*http.Client, error) {
 
 	client := &http.Client{}
-	//overriding the default parameters
+	// 覆盖默认参数
 	client.Transport = &http.Transport{
 		DisableCompression:    disableCompression,
 		DisableKeepAlives:     disableKeepAlive,
@@ -25,32 +24,33 @@ func client(disableCompression, disableKeepAlive, skipVerify bool, timeoutms int
 	}
 
 	if !allowRedirects {
-		//returning an error when trying to redirect. This prevents the redirection from happening.
+		// 返回错误以阻止重定向发生。
 		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-			return util.NewRedirectError("redirection not allowed")
+			return util.NewRedirectError("不允许重定向")
 		}
 	}
 
 	if clientCert == "" && clientKey == "" && caCert == "" {
+		// 如果未提供任何客户端证书或 CA 证书，则直接返回默认客户端。
 		return client, nil
 	}
 
 	if clientCert == "" {
-		return nil, fmt.Errorf("client certificate can't be empty")
+		return nil, fmt.Errorf("客户端证书不能为空")
 	}
 
 	if clientKey == "" {
-		return nil, fmt.Errorf("client key can't be empty")
+		return nil, fmt.Errorf("客户端密钥不能为空")
 	}
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to load cert tried to load %v and %v but got %v", clientCert, clientKey, err)
+		return nil, fmt.Errorf("无法加载证书，尝试加载 %v 和 %v 时出错: %v", clientCert, clientKey, err)
 	}
 
-	// Load our CA certificate
-	clientCACert, err := ioutil.ReadFile(caCert)
+	// 加载 CA 证书
+	clientCACert, err := os.ReadFile(caCert)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open cert %v", err)
+		return nil, fmt.Errorf("无法打开 CA 证书: %v", err)
 	}
 
 	clientCertPool := x509.NewCertPool()
@@ -62,7 +62,6 @@ func client(disableCompression, disableKeepAlive, skipVerify bool, timeoutms int
 		InsecureSkipVerify: skipVerify,
 	}
 
-	tlsConfig.BuildNameToCertificate()
 	t := &http.Transport{
 		TLSClientConfig: tlsConfig,
 	}

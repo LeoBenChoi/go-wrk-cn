@@ -13,7 +13,7 @@ import (
 	"time"
 
 	histo "github.com/HdrHistogram/hdrhistogram-go"
-	"github.com/tsliwowicz/go-wrk/util"
+	"github.com/LeoBenChoi/go-wrk-cn/util"
 )
 
 const (
@@ -41,17 +41,18 @@ type LoadCfg struct {
 	http2              bool
 }
 
-// RequesterStats used for collecting aggregate statistics
+// RequesterStats 用于收集聚合统计信息
 type RequesterStats struct {
-	TotRespSize    int64
-	TotDuration    time.Duration
-	NumRequests    int
-	NumErrs        int
-	ErrMap		   map[string]int
-	Histogram	   *histo.Histogram
+	TotRespSize int64
+	TotDuration time.Duration
+	NumRequests int
+	NumErrs     int
+	ErrMap      map[string]int
+	Histogram   *histo.Histogram
 }
 
-func NewLoadCfg(duration int, // seconds
+// NewLoadCfg 创建一个新的负载配置
+func NewLoadCfg(duration int, // 测试持续时间（秒）
 	goroutines int,
 	testUrl string,
 	reqBody string,
@@ -73,6 +74,7 @@ func NewLoadCfg(duration int, // seconds
 	return
 }
 
+// escapeUrlStr 转义 URL 字符串
 func escapeUrlStr(in string) string {
 	qm := strings.Index(in, "?")
 	if qm != -1 {
@@ -102,8 +104,8 @@ func escapeUrlStr(in string) string {
 	}
 }
 
-// DoRequest single request implementation. Returns the size of the response and its duration
-// On error - returns -1 on both
+// DoRequest 单个请求实现。返回响应大小和持续时间
+// 错误时返回 -1
 func DoRequest(httpClient *http.Client, header map[string]string, method, host, loadUrl, reqBody string) (respSize int, duration time.Duration, err error) {
 	respSize = -1
 	duration = -1
@@ -117,7 +119,7 @@ func DoRequest(httpClient *http.Client, header map[string]string, method, host, 
 
 	req, err := http.NewRequest(method, loadUrl, buf)
 	if err != nil {
-		return 0,0,err
+		return 0, 0, err
 	}
 
 	for hk, hv := range header {
@@ -131,16 +133,15 @@ func DoRequest(httpClient *http.Client, header map[string]string, method, host, 
 	start := time.Now()
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		// this is a bit weird. When redirection is prevented, a url.Error is retuned. This creates an issue to distinguish
-		// between an invalid URL that was provided and and redirection error.
+		// 当重定向被阻止时，返回一个 url.Error。这会导致区分无效 URL 和重定向错误的问题。
 		_, ok := err.(*url.Error)
 		if !ok {
-			return 0,0,err
+			return 0, 0, err
 		}
-		return 0,0,err
+		return 0, 0, err
 	}
 	if resp == nil {
-		return 0,0,errors.New("empty response")
+		return 0, 0, errors.New("empty response")
 	}
 	defer func() {
 		if resp != nil && resp.Body != nil {
@@ -149,32 +150,33 @@ func DoRequest(httpClient *http.Client, header map[string]string, method, host, 
 	}()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return 0,0,err
+		return 0, 0, err
 	}
-	if resp.StatusCode/100 == 2 { // Treat all 2XX as successful
+	if resp.StatusCode/100 == 2 { // 将所有 2XX 状态码视为成功
 		duration = time.Since(start)
 		respSize = len(body) + int(util.EstimateHttpHeadersSize(resp.Header))
 	} else if resp.StatusCode == http.StatusMovedPermanently || resp.StatusCode == http.StatusTemporaryRedirect {
 		duration = time.Since(start)
 		respSize = int(resp.ContentLength) + int(util.EstimateHttpHeadersSize(resp.Header))
 	} else {
-		return 0,0,errors.New(fmt.Sprint("received status code ", resp.StatusCode))
+		return 0, 0, errors.New(fmt.Sprint("received status code ", resp.StatusCode))
 	}
 
 	return
 }
 
+// unwrap 解包错误
 func unwrap(err error) error {
-	for errors.Unwrap(err)!=nil {
-		err = errors.Unwrap(err);
+	for errors.Unwrap(err) != nil {
+		err = errors.Unwrap(err)
 	}
 	return err
 }
 
-// Requester a go function for repeatedly making requests and aggregating statistics as long as required
-// When it is done, it sends the results using the statsAggregator channel
+// RunSingleLoadSession 一个 go 函数，用于重复请求并聚合统计信息，直到满足要求
+// 完成后，使用 statsAggregator 通道发送结果
 func (cfg *LoadCfg) RunSingleLoadSession() {
-	stats := &RequesterStats{ErrMap: make(map[string]int), Histogram: histo.New(1,int64(cfg.duration * 1000000),4)}
+	stats := &RequesterStats{ErrMap: make(map[string]int), Histogram: histo.New(1, int64(cfg.duration*1000000), 4)}
 	start := time.Now()
 
 	httpClient, err := client(cfg.disableCompression, cfg.disableKeepAlive, cfg.skipVerify,
@@ -186,12 +188,12 @@ func (cfg *LoadCfg) RunSingleLoadSession() {
 	for time.Since(start).Seconds() <= float64(cfg.duration) && atomic.LoadInt32(&cfg.interrupted) == 0 {
 		respSize, reqDur, err := DoRequest(httpClient, cfg.header, cfg.method, cfg.host, cfg.testUrl, cfg.reqBody)
 		if err != nil {
-			stats.ErrMap[unwrap(err).Error()]+=1
+			stats.ErrMap[unwrap(err).Error()] += 1
 			stats.NumErrs++
 		} else if respSize > 0 {
 			stats.TotRespSize += int64(respSize)
 			stats.TotDuration += reqDur
-			stats.Histogram.RecordValue(reqDur.Microseconds());
+			stats.Histogram.RecordValue(reqDur.Microseconds())
 			stats.NumRequests++
 		} else {
 			stats.NumErrs++

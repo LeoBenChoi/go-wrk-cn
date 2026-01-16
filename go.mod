@@ -1,4 +1,4 @@
-module github.com/tsliwowicz/go-wrk
+module github.com/LeoBenChoi/go-wrk-cn
 
 go 1.21
 

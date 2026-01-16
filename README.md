@@ -1,62 +1,64 @@
-go-wrk - an HTTP benchmarking tool
+go-wrk - HTTP 性能测试工具
 ==================================
 
-go-wrk is a modern HTTP benchmarking tool capable of generating significant load when run on a single multi-core CPU. It builds on go language go routines and scheduler for behind the scenes async IO and concurrency.
+**本项目是对原项目（https://github.com/tsliwowicz/go-wrk）的汉化，虽然项目叫go-wrk-cn，但是使用命令还算是go-wrk，代码方面只修改了弃用的库**
 
-It was created mostly to examine go language (http://golang.org) performance and verbosity compared to C (the language wrk was written in. See - <https://github.com/wg/wrk>).  
-It turns out that it is just as good in terms of throughput! And with a lot less code.  
+go-wrk 是一个现代化的 HTTP 性能测试工具，在单台多核 CPU 上运行时能够产生显著的负载。它基于 Go 语言的 goroutine 和调度器，在后台实现异步 IO 和并发。
 
-The majority of go-wrk is the product of one afternoon, and its quality is comparable to wrk.
+创建 go-wrk 主要是为了检验 Go 语言（http://golang.org）与 C 语言（wrk 是用 C 语言编写的，参见 - <https://github.com/wg/wrk>）在性能和代码简洁性方面的对比。  
+事实证明，go-wrk 在吞吐量方面同样出色！而且代码量更少。  
 
-Building
+go-wrk 的大部分代码是在一个下午完成的，其质量可与 wrk 相媲美。
+
+构建
 --------
 
-    go install github.com/tsliwowicz/go-wrk@latest
+    go install github.com/LeoBenChoi/go-wrk-cn@latest
 
-This will download and compile go-wrk. 
-   
-Command line parameters (./go-wrk -help)  
+这将下载并编译 go-wrk。 
+
+命令行参数 (./go-wrk -help)  
 	
        Usage: go-wrk <options> <url>
        Options:
-        -H       Header to add to each request (you can define multiple -H flags) (Default )
-        -M       HTTP method (Default GET)
-        -T       Socket/request timeout in ms (Default 1000)
-        -body    request body string or @filename (Default )
-        -c       Number of goroutines to use (concurrent connections) (Default 10)
-        -ca      CA file to verify peer against (SSL/TLS) (Default )
-        -cert    CA certificate file to verify peer against (SSL/TLS) (Default )
-        -d       Duration of test in seconds (Default 10)
-        -f       Playback file name (Default <empty>)
-        -help    Print help (Default false)
-        -host    Host Header (Default )
-        -http    Use HTTP/2 (Default true)
-        -key     Private key file name (SSL/TLS (Default )
-        -no-c    Disable Compression - Prevents sending the "Accept-Encoding: gzip" header (Default false)
-        -no-ka   Disable KeepAlive - prevents re-use of TCP connections between different HTTP requests (Default false)
-        -no-vr   Skip verifying SSL certificate of the server (Default false)
-        -redir   Allow Redirects (Default false)
-        -v       Print version details (Default false)
+        -H       添加到每个请求的请求头（可以定义多个 -H 标志）(默认值 )
+        -M       HTTP 方法 (默认值 GET)
+        -T       Socket/请求超时时间（毫秒）(默认值 1000)
+        -body    请求体字符串或 @文件名 (默认值 )
+        -c       使用的 goroutine 数量（并发连接数）(默认值 10)
+        -ca      用于验证对等方的 CA 文件（SSL/TLS）(默认值 )
+        -cert    用于验证对等方的 CA 证书文件（SSL/TLS）(默认值 )
+        -d       测试持续时间（秒）(默认值 10)
+        -f       回放文件名 (默认值 <empty>)
+        -help    打印帮助信息 (默认值 false)
+        -host    Host 请求头 (默认值 )
+        -http    使用 HTTP/2 (默认值 true)
+        -key     私钥文件名（SSL/TLS）(默认值 )
+        -no-c    禁用压缩 - 阻止发送 "Accept-Encoding: gzip" 请求头 (默认值 false)
+        -no-ka   禁用 KeepAlive - 阻止在不同 HTTP 请求之间重用 TCP 连接 (默认值 false)
+        -no-vr   跳过验证服务器的 SSL 证书 (默认值 false)
+        -redir   允许重定向 (默认值 false)
+        -v       打印版本详情 (默认值 false)
 
-Basic Usage
+基本用法
 -----------
 
     ./go-wrk -c 2048 -d 10 http://localhost:8080/plaintext
 
-This runs a benchmark for 10 seconds, using 2048 go routines (connections)
+这将运行一个持续 10 秒的性能测试，使用 2048 个 goroutine（连接）
 
-Output:
+输出示例:
 
-    Running 10s test @ http://localhost:8080/plaintext
-        2048 goroutine(s) running concurrently
-    439977 requests in 10.012950719s, 52.45MB read
-    Requests/sec:		43940.79
-    Transfer/sec:		5.24MB
-    Fastest Request:	98µs
-    Avg Req Time:		46.608ms
-    Slowest Request:	398.431ms
-    Number of Errors:	0
-    Error Counts:		map[]
+    正在运行 10 秒的测试 @ http://localhost:8080/plaintext
+        同时有 2048 个 goroutine 并发执行
+    439977 个请求在 10.012950719s 内完成, 读取 52.45MB
+    每秒请求数:		43940.79
+    每秒传输量:		5.24MB
+    最快请求:		98µs
+    平均请求耗时:		46.608ms
+    最慢请求:		398.431ms
+    错误数量:		0
+    错误类型统计:		map[]
     10%:			    164µs
     50%:			    2.382ms
     75%:			    3.83ms
@@ -64,20 +66,17 @@ Output:
     99.9%:			    5.488ms
     99.9999%:		    5.5ms
     99.99999%:		    5.5ms
-    stddev:			    29.744ms
+    标准偏差:			29.744ms
 
 
-Benchmarking Tips
+性能测试技巧
 -----------------
 
-  The machine running go-wrk must have a sufficient number of ephemeral ports
-  available and closed sockets should be recycled quickly. To handle the
-  initial connection burst the server's listen(2) backlog should be greater
-  than the number of concurrent connections being tested.
+  运行 go-wrk 的机器必须有足够数量的临时端口可用，并且关闭的套接字应该快速回收。为了处理初始连接突发，服务器的 listen(2) 积压队列应该大于正在测试的并发连接数。
 
-Acknowledgements
+致谢
 ----------------
 
-  golang is awesome. I did not need anything but this to create go-wrk.  
-  I fully credit the wrk project (https://github.com/wg/wrk) for the inspiration and even parts of this text.  
-  I also used similar command line arguments format and output format.
+  golang 非常棒。除了它，我不需要任何其他东西就能创建 go-wrk。  
+  我完全感谢 wrk 项目（https://github.com/wg/wrk）提供的灵感和本文的部分内容。  
+  我还使用了类似的命令行参数格式和输出格式。
